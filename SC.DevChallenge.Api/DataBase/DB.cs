@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.OleDb;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -41,19 +42,23 @@ namespace SC.DevChallenge.Api.DataBase
         //    return l == null ? "" : l[0].ToString();
         //}
 
-        private double dtToTs(DateTime dt)
+        private static double dtToTs(DateTime dt)
         {
             return (new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour,
                 dt.Minute, dt.Second)
                 - new DateTime(2018, 1, 1)).TotalSeconds;
         }
 
-        private DateTime tsToDt(int s)
+        private static DateTime tsToDt(int s)
         {
-            return new DateTime((s+DateTime.Now.Second)*1000000000);
+           long ticks = new DateTime(2018, 01, 01, 0, 0, 0,
+    new CultureInfo("en-US", false).Calendar).Ticks;
+            var t = (s*1000000000 + ticks);
+            return new DateTime(t);
         }
         public static string getAvarage(string p, string o, string i, string d)
         {
+            //DateTime d1 = new DateTime();
             var myOleDbConnection = getConnection();
             OleDbCommand myOleDbCommand = myOleDbConnection.CreateCommand();
             myOleDbCommand.CommandText = "SELECT Avg(Price) as p " +
@@ -95,14 +100,18 @@ namespace SC.DevChallenge.Api.DataBase
                 
                 d = d.Replace("%2F", "/");
                 var dd = d.Split("/");
-                var diffInSeconds = (new DateTime(Convert.ToInt32(dd[2]),
+                var diffInSeconds = (new DateTime(Convert.ToInt32(dd[2].Substring(0, 4)),
                     Convert.ToInt32(dd[1]), Convert.ToInt32(dd[0]))
                     - new DateTime( 2018,1,1)).TotalSeconds;
                 var interval = diffInSeconds / 10000;
-                var min = 10000 * interval;
-                var max = 10000 * (interval+1);
-                //DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
-                whereParam += "ddate = DateAdd('s', #" + d + "#";
+                var min = 10000 * (int)interval;
+                var max = 10000 * (int)(interval+1);
+                var d1 = tsToDt((int)min);
+                var d2 = tsToDt((int)max);
+                string ddd = d1.ToString("dd/MM/yyyy HH:mm:ss").Replace(".", "/");
+                Console.WriteLine(ddd);
+                string dddd = d2.ToString("dd/MM/yyyy HH:mm:ss").Replace(".", "/");
+                whereParam += "ddate >= #" + ddd + "# and ddate < #"+dddd+"# ";
             }
             if (!String.IsNullOrEmpty(whereParam))
             {
@@ -112,9 +121,11 @@ namespace SC.DevChallenge.Api.DataBase
             myOleDbConnection.Open();
             //OleDbDataReader myOleDbDataReader = myOleDbCommand.ExecuteReader();
             List<decimal> l = new List<decimal>();
+            Console.WriteLine(myOleDbCommand.CommandText);
             try
             {
                 OleDbDataReader myOleDbDataReader = myOleDbCommand.ExecuteReader();
+                
                 while (myOleDbDataReader.Read())
 
                 {
@@ -131,7 +142,7 @@ namespace SC.DevChallenge.Api.DataBase
                 return l == null ? "" : l[0].ToString();
             }catch(Exception e)
             {
-                return "Something went wrong!";
+                return " Something went wrong!";
             }
             
         }
