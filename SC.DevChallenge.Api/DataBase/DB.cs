@@ -179,19 +179,36 @@ namespace SC.DevChallenge.Api.DataBase
             List<decimal> prices = new List<decimal>();
             while (reader.Read())
             {
-                if (reader[0] == DBNull.Value)
+                if (reader[0] == DBNull.Value && !isAgg)
                 {
                     throw new HttpException(404, "Not Found");
                 }
-                prices.Add((decimal)reader[0]);
-            }
-            if (prices == null || prices.Count == 0)
+                else
+                {
+                    if (reader[0] == DBNull.Value && isAgg)
+                    {
+                        prices.Add(0);
+                    }
+                    else
+                    {
+                        prices.Add((decimal)reader[0]);
+                    }
+                }
+                }
+               
+               
+            if (!isAgg && (prices == null || prices.Count == 0))
             {
                 throw new HttpException(404, "Not Found");
             }
+
             //prices.Sort();
             var avgPrice = GetAvgBenchMark(prices, FindQs(prices));
             var l = isAgg ? lastLim : dateLimits.Item1;
+            if (isAgg && (prices == null || prices.Count == 0))
+            {
+                return (0, l);
+            }
             return (avgPrice, l);
         }
 
@@ -221,6 +238,10 @@ namespace SC.DevChallenge.Api.DataBase
             {
                 return (prices[0], prices[0]);
             }
+            if (prices.Count == 0)
+            {
+                return (0, 0);
+            }
             int len = prices.Count;
             //bool isLenOdd = len % 2 == 0 ? false : true ;
             decimal median = len / 2;
@@ -244,7 +265,10 @@ namespace SC.DevChallenge.Api.DataBase
             decimal ll = q.Item1 - (iqr + iqr / 2);
             decimal ul = q.Item2 + (iqr + iqr / 2);
             var suitablePrices = prices.FindAll(p => p >= ll && p <= ul);
-
+            if (suitablePrices == null || suitablePrices.Count == 0)
+            {
+                return 0;
+            }
             return Math.Round(suitablePrices.Average(),2);
         }
 
@@ -290,12 +314,24 @@ namespace SC.DevChallenge.Api.DataBase
             {
                 if (amountFull != 0)
                 {
-                    var currLL = ll.AddSeconds(j*10000);
-                    var currUL = 
-                        ll.AddSeconds((j + fullGrSize) * 10000);
-                    res.Add(FindBenchmark(p, (currLL, currUL),
-                         true, currUL.AddSeconds(-10000)));
-                    j += fullGrSize;
+                    var nm = 0;
+                    decimal a = 0;
+                    (decimal, DateTime) aa = (0, new DateTime());
+                    for (int k = 0; k < fullGrSize; k++)
+                    {
+                        var currLL = ll.AddSeconds(j * 10000);
+                        var currUL =
+                            ll.AddSeconds((j + 1) * 10000);
+                        aa =(FindBenchmark(p, (currLL, currUL),
+                             true, currUL.AddSeconds(-10000)));
+                        a += aa.Item1;
+                        if (aa.Item1 == 0)
+                        {
+                            nm++;
+                        }
+                        j += 1;
+                    }
+                    res.Add((Math.Round(a/(fullGrSize-nm),2), aa.Item2));   
                     amountFull--;
 
                 }
@@ -303,13 +339,29 @@ namespace SC.DevChallenge.Api.DataBase
                 {
                     if (amountMotFull != 0)
                     {
-                        var currLL =
+                        var nmm = 0;
+                        decimal a1 = 0;
+                        (decimal, DateTime) aa1 = (0, new DateTime());
+                        for (int k = 0; k < notFullGrSize; k++)
+                        {
+                            var currLL =
                         ll.AddSeconds(j * 10000);
-                        var currUL =
-                            ll.AddSeconds((j + notFullGrSize) * 10000);
-                        res.Add(FindBenchmark(p, (currLL, currUL), true,
-                            currUL.AddSeconds(-10000)));
+                            var currUL =
+                                ll.AddSeconds((j + 1) * 10000);
+                            aa1 = (FindBenchmark(p, (currLL, currUL), true,
+                                currUL.AddSeconds(-10000)));
+                            a1 += aa1.Item1;
+                            if (aa1.Item1 == 0)
+                            {
+                                nmm++;
+                            }
+                            j += 1;
+
+                        }
+                        res.Add((Math.Round(a1 /( fullGrSize-nmm),2),
+                            aa1.Item2));
                         amountMotFull--;
+
                     }
                     else
                     {
