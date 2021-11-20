@@ -13,6 +13,9 @@ using System.IO;
 
 namespace SC.DevChallenge.Api
 {
+
+    //if you cannot connect to db connect it via server explorer
+    //if it's still not working you need to install Microsoft.ACE.OLEDB.12.0
     public class Program
     {
         public static void Main(string[] args) =>
