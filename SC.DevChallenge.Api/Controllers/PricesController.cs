@@ -63,7 +63,7 @@ namespace SC.DevChallenge.Api.Controllers
             var res = "";
             try
             {
-                res+="[\n"
+                res += "[\n";
                 var js = DataBase.DB.GetDB().GetAggregate(portfolio, startDate,
                     endDate, intervals);
 
