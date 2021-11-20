@@ -20,9 +20,9 @@ namespace SC.DevChallenge.Api
 
        
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
+        public static  IHostBuilder CreateHostBuilder(string[] args)
         {
-            DataBase.DB db = new DataBase.DB();
+           // DataBase.DB db = new DataBase.DB();
             return  Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                     webBuilder.UseStartup<Startup>());
