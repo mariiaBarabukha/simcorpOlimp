@@ -12,7 +12,7 @@ namespace SC.DevChallenge.Api.DataBase
     public class DB
     {
 
-        //singletone class to prevent creating more then 1 entity
+        //singletone class to prevent creating more then 1 instance
         private DB()
         {
            
@@ -167,7 +167,6 @@ namespace SC.DevChallenge.Api.DataBase
 
             myOleDbCommand.Connection = getConnection();
             myOleDbCommand.Connection.Open();
-            //var dateLimits = GetDateTimeLimits(d);
             myOleDbCommand.Parameters.Add("port",
                 OleDbType.VarChar, 255).Value = p;
             myOleDbCommand.Parameters.Add("dd1",
@@ -228,23 +227,11 @@ namespace SC.DevChallenge.Api.DataBase
             decimal q1 = Math.Round(median) - median/ 2;
             decimal q3 = Math.Round(median) + median/ 2;
 
-            decimal q1p = 0;
-            decimal q3p = 0;
-
-            q1p = (prices[(int)Math.Floor(q1)]
+            decimal q1p = (prices[(int)Math.Floor(q1)]
                     + prices[(int)Math.Ceiling(q1)]) / 2;
-            q3p = (prices[(int)Math.Floor(q3)]
+            decimal q3p = (prices[(int)Math.Floor(q3)]
                + prices[(int)Math.Ceiling(q3)]) / 2;
 
-            //if (isLenOdd)
-            //{
-
-            //}
-            //else
-            //{
-            //    q1p = prices[(int)q1];
-            //    q3p = prices[(int)q3];
-            //}
             return (q1p, q3p);
         }
 
