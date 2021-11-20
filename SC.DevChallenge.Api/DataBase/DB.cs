@@ -57,7 +57,7 @@ namespace SC.DevChallenge.Api.DataBase
             return new DateTime(t);
         }
 
-        //solve task 1
+        
         public  JsonResult getAvarage(string p, string o, string i, string d)
         {
             //DateTime d1 = new DateTime();
@@ -190,13 +190,13 @@ namespace SC.DevChallenge.Api.DataBase
             {
                 throw new HttpException(404, "Not Found");
             }
-            prices.Sort();
+            //prices.Sort();
             var avgPrice = GetAvgBenchMark(prices, FindQs(prices));
             var l = isAgg ? lastLim : dateLimits.Item1;
             return new JsonResult(new MyResponce(avgPrice, l));
         }
 
-        //solve task2
+        //solve task1
         public  JsonResult GetBenchMark(string p, string d)
         {
             if (p == null || d == null)
@@ -211,8 +211,9 @@ namespace SC.DevChallenge.Api.DataBase
         }
 
         //finds quartiles
-        private  (decimal, decimal) FindQs(List<decimal> prices)
+        public  (decimal, decimal) FindQs(List<decimal> prices)
         {
+            prices.Sort();
             if (prices.Count == 2)
             {
                 return (prices[0], prices[1]);
@@ -222,26 +223,28 @@ namespace SC.DevChallenge.Api.DataBase
                 return (prices[0], prices[0]);
             }
             int len = prices.Count;
-            bool isLenOdd = len % 2 == 0 ? false : true ;
+            //bool isLenOdd = len % 2 == 0 ? false : true ;
             decimal median = len / 2;
-            decimal q1 = median / 2;
-            decimal q3 = median + q1;
+            decimal q1 = Math.Round(median) - median/ 2;
+            decimal q3 = Math.Round(median) + median/ 2;
 
             decimal q1p = 0;
             decimal q3p = 0;
 
-            if (isLenOdd)
-            {
-                q1p = (prices[(int)Math.Floor(q1)]
-                    + prices[(int)Math.Ceiling(q1)])/2;
-                q3p = (prices[(int)Math.Floor(q3)]
-                   + prices[(int)Math.Ceiling(q3)]) / 2;
-            }
-            else
-            {
-                q1p = prices[(int)q1];
-                q3p = prices[(int)q3];
-            }
+            q1p = (prices[(int)Math.Floor(q1)]
+                    + prices[(int)Math.Ceiling(q1)]) / 2;
+            q3p = (prices[(int)Math.Floor(q3)]
+               + prices[(int)Math.Ceiling(q3)]) / 2;
+
+            //if (isLenOdd)
+            //{
+
+            //}
+            //else
+            //{
+            //    q1p = prices[(int)q1];
+            //    q3p = prices[(int)q3];
+            //}
             return (q1p, q3p);
         }
 
@@ -249,12 +252,13 @@ namespace SC.DevChallenge.Api.DataBase
         private decimal GetAvgBenchMark(List<decimal> prices, 
             (decimal, decimal) q)
         {
+            
             decimal iqr = q.Item2 - q.Item1;
             decimal ll = q.Item1 - (iqr + iqr / 2);
             decimal ul = q.Item2 + (iqr + iqr / 2);
             var suitablePrices = prices.FindAll(p => p >= ll && p <= ul);
 
-            return suitablePrices.Average();
+            return Math.Round(suitablePrices.Average(),2);
         }
 
         //finds bottom and top limits of slot
@@ -276,10 +280,14 @@ namespace SC.DevChallenge.Api.DataBase
             var maxd = parsedDate.AddSeconds(frominterval);
             return (mind, maxd);
         }
-
-        public  JsonResult[] GetAggregate(string p,
+        //solve task 2
+        public JsonResult[] GetAggregate(string p,
              string sd, string ed, int intervals)
         {
+            if (p == null || sd == null || ed == null || intervals == 0)
+            {
+                throw new HttpException(404, "Not Found");
+            }
             var ll = GetDateTimeLimits(sd).Item1;
             var ul = GetDateTimeLimits(ed).Item2;
             int diff = (int)(ul - ll).TotalSeconds;

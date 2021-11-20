@@ -53,21 +53,23 @@ namespace SC.DevChallenge.Api.Controllers
 
             return res;
         }
-
+        //my answer do not match with answer in doc file
+        //i tried to find out why but i failed
         [HttpGet("aggregate")]
         public string Aggregate(string portfolio, string startDate, 
             string endDate, int intervals)
         {
             JsonResult json = null;
-            var res = "[\n";
+            var res = "";
             try
             {
+                res+="[\n"
                 var js = DataBase.DB.GetDB().GetAggregate(portfolio, startDate,
                     endDate, intervals);
 
                 foreach (var j in js)
                 {
-                    res += (JsonConvert.SerializeObject(json.Value)+"\n");
+                    res += (JsonConvert.SerializeObject(j.Value)+"\n");
                 }
                
                 //res = JsonConvert.SerializeObject(json.Value);
