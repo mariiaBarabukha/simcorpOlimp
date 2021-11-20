@@ -157,7 +157,7 @@ namespace SC.DevChallenge.Api.DataBase
 
 
         //make request to db and returns result
-        private  JsonResult FindBenchmark(string p,
+        private  (decimal, DateTime) FindBenchmark(string p,
             (DateTime, DateTime) dateLimits, bool isAgg = false, 
             DateTime lastLim = new DateTime())
         {
@@ -193,11 +193,11 @@ namespace SC.DevChallenge.Api.DataBase
             //prices.Sort();
             var avgPrice = GetAvgBenchMark(prices, FindQs(prices));
             var l = isAgg ? lastLim : dateLimits.Item1;
-            return new JsonResult(new MyResponce(avgPrice, l));
+            return (avgPrice, l);
         }
 
         //solve task1
-        public  JsonResult GetBenchMark(string p, string d)
+        public (decimal, DateTime) GetBenchMark(string p, string d)
         {
             if (p == null || d == null)
             {
@@ -281,7 +281,7 @@ namespace SC.DevChallenge.Api.DataBase
             return (mind, maxd);
         }
         //solve task 2
-        public JsonResult[] GetAggregate(string p,
+        public List<(decimal, DateTime)> GetAggregate(string p,
              string sd, string ed, int intervals)
         {
             if (p == null || sd == null || ed == null || intervals == 0)
@@ -292,11 +292,12 @@ namespace SC.DevChallenge.Api.DataBase
             var ul = GetDateTimeLimits(ed).Item2;
             int diff = (int)(ul - ll).TotalSeconds;
             int currIntervals = diff / 10000;
-            var res = new JsonResult[intervals];
+            //var res = new MyResponce[intervals];
+            var res = new List<(decimal, DateTime)>();
             int fullGrSize = currIntervals / intervals + 1;
             int amountFull = currIntervals % intervals;
             int notFullGrSize = currIntervals / intervals;
-            int amountMotFull = currIntervals - amountFull;
+            int amountMotFull = intervals - amountFull;
             int j = 0;
             for (int i = 0; i < intervals; i++)
             {
@@ -305,8 +306,8 @@ namespace SC.DevChallenge.Api.DataBase
                     var currLL = ll.AddSeconds(j*10000);
                     var currUL = 
                         ll.AddSeconds((j + fullGrSize) * 10000);
-                    res[i] = FindBenchmark(p, (currLL, currUL),
-                         true, currUL.AddSeconds(-10000));
+                    res.Add(FindBenchmark(p, (currLL, currUL),
+                         true, currUL.AddSeconds(-10000)));
                     j += fullGrSize;
                     amountFull--;
 
@@ -319,14 +320,16 @@ namespace SC.DevChallenge.Api.DataBase
                         ll.AddSeconds(j * 10000);
                         var currUL =
                             ll.AddSeconds((j + notFullGrSize) * 10000);
-                        res[i] = FindBenchmark(p, (currLL, currUL), true,
-                            currUL.AddSeconds(-10000));
+                        res.Add(FindBenchmark(p, (currLL, currUL), true,
+                            currUL.AddSeconds(-10000)));
                         amountMotFull--;
                     }
                     else
                     {
-                        res[i] = null;
+                        res.Add((0,
+                            ll.AddSeconds((j -1 + notFullGrSize) * 10000)));
                     }
+                   
                     
                 }
 
@@ -342,7 +345,7 @@ namespace SC.DevChallenge.Api.DataBase
     {
         public decimal Price;
         public DateTime Date;
-        public MyResponce(decimal price, DateTime dateTime)
+        public MyResponce(decimal price = 0, DateTime dateTime = new DateTime())
         {
             Price = price;
             Date = dateTime;
