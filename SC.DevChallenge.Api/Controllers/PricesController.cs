@@ -82,7 +82,7 @@ namespace SC.DevChallenge.Api.Controllers
                 var re = "[\n";
                 foreach (var t in r)
                 {
-                    re += $"{{\n price: {r.Item1},\n date: {r.Item2}\n}}";
+                    re += $"{{\n price: {t.Item1},\n date: {t.Item2}\n}}";
                 }
                 return re+"\n]";
 
