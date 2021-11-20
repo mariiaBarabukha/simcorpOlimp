@@ -39,7 +39,7 @@ namespace SC.DevChallenge.Api.Controllers
         public string Benchmark(string portfolio, string date)
         {
            
-            var res = "";
+           
             try
             {
                 //json =
@@ -62,21 +62,9 @@ namespace SC.DevChallenge.Api.Controllers
         public string Aggregate(string portfolio, string startDate, 
             string endDate, int intervals)
         {
-            List<(decimal, DateTime)> json = null;
-            var res = "";
+           
             try
             {
-                //res += "[\n";
-                //var js = DataBase.DB.GetDB().GetAggregate(portfolio, startDate,
-                //    endDate, intervals);
-
-                //foreach (var j in js)
-                //{
-                //    res += (JsonConvert.SerializeObject(j.Value)+"\n");
-                //}
-               
-                //res = JsonConvert.SerializeObject(json.Value);
-                //return res+"]";
                 var r = DataBase.DB.GetDB().GetAggregate(portfolio, startDate,
                     endDate, intervals);
                 var re = "[\n";
